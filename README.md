@@ -10,7 +10,7 @@ it as-is with GitHub Pages (a `.nojekyll` is included).
 
 Regions in this build: arctic baltic mediterranean.
 
-Generated on 2026-07-18.
+Generated on 2026-07-21.
 
 ## License
 
