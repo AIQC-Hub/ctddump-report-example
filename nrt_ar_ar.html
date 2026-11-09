@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-d6870428.js";
+            window.path_to_searchindex_js = "searchindex-27dd8173.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-03be949b.js"></script>
@@ -201,7 +201,7 @@
 </table>
 </div>
 <h2 id="conversion"><a class="header" href="#conversion">Conversion</a></h2>
-<p>Counts after converting the source NetCDF files to Parquet, before any profile is dropped. These are the “original” numbers every later stage is compared against.</p>
+<p>Counts after converting the source NetCDF files to Parquet and merging them into one file. The merge sorts each profile’s observations by increasing pressure and drops observations without a pressure value (a profile with no pressure at all is dropped with them); no other profile is dropped yet. These are the “original” numbers every later stage is compared against.</p>
 <ul>
 <li>File: <code>report/convert/nrt_ar_ar.parquet.tsv</code></li>
 </ul>
@@ -218,16 +218,37 @@
 </table>
 </div>
 <p><strong>Data mode</strong></p>
-<p>Observations per data mode for each parameter: real-time (R), adjusted in real time (A), or delayed mode (D). Percentages are shares of all observations. Observations whose data mode is unset (a fill value in the source file) are not counted, so a row can sum to less than 100%.</p>
+<p>Observations per data mode for each parameter: real-time (R), adjusted in real time (A), or delayed mode (D), as recorded in the source files. Percentages are shares of all observations. Unknown counts observations with no data mode: a fill value in the source file, a file without data-mode information, or a parameter the file does not have.</p>
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th>Parameter</th><th>Real-time (R)</th><th>% R</th><th>Adjusted (A)</th><th>% A</th><th>Delayed mode (D)</th><th>% D</th></tr>
+<tr><th>Parameter</th><th>Real-time (R)</th><th>% R</th><th>Adjusted (A)</th><th>% A</th><th>Delayed mode (D)</th><th>% D</th><th>Unknown</th><th>% Unknown</th></tr>
 </thead>
 <tbody>
-<tr><td>Temperature</td><td>56,292,154</td><td>60.4%</td><td>0</td><td>0.0%</td><td>36,896,497</td><td>39.6%</td></tr>
-<tr><td>Salinity</td><td>56,219,092</td><td>60.3%</td><td>0</td><td>0.0%</td><td>36,857,318</td><td>39.5%</td></tr>
-<tr><td>Pressure</td><td>56,306,687</td><td>60.4%</td><td>0</td><td>0.0%</td><td>36,896,619</td><td>39.6%</td></tr>
+<tr><td>Temperature</td><td>55,624,509</td><td>59.7%</td><td>0</td><td>0.0%</td><td>36,896,497</td><td>39.6%</td><td>682,300</td><td>0.7%</td></tr>
+<tr><td>Salinity</td><td>55,103,366</td><td>59.1%</td><td>0</td><td>0.0%</td><td>36,857,318</td><td>39.5%</td><td>1,242,622</td><td>1.3%</td></tr>
+<tr><td>Pressure</td><td>56,306,687</td><td>60.4%</td><td>0</td><td>0.0%</td><td>36,896,619</td><td>39.6%</td><td>0</td><td>0.0%</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="pressure-order"><a class="header" href="#pressure-order">Pressure order</a></h2>
+<p>Checks, before the merge, that pressure increases along each profile in the order the source file stores it. A profile is counted when its pressure steps down between two observations; missing pressures are skipped and a repeated pressure is fine. “Reversed” profiles are stored from the bottom up, which the merge’s sort by pressure puts right; “non-monotonic” ones go both up and down, which can mean loops, spikes or misplaced levels, and the sort hides them. Shares are of the profiles, platforms and files checked; profiles without any pressure are not checked (the merge drops them). Nothing is removed here.</p>
+<ul>
+<li>File: <code>report/convert/checkpres/nrt_ar_ar.summary.tsv</code></li>
+</ul>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Metric</th><th>Count</th><th>Share</th></tr>
+</thead>
+<tbody>
+<tr><td>Profiles checked</td><td>358,351</td><td></td></tr>
+<tr><td>Profiles without pressure (not checked)</td><td>0</td><td></td></tr>
+<tr><td>Profiles with decreasing pressure</td><td>0</td><td>0.0%</td></tr>
+<tr><td>of which reversed</td><td>0</td><td>0.0%</td></tr>
+<tr><td>of which non-monotonic</td><td>0</td><td>0.0%</td></tr>
+<tr><td>Platforms with such profiles</td><td>0</td><td>0.0%</td></tr>
+<tr><td>Files with such profiles</td><td>0</td><td>0.0%</td></tr>
 </tbody>
 </table>
 </div>

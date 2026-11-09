@@ -8,9 +8,13 @@ A static web site of CTD data summary reports, one page per
 This directory is the built site: open `index.html` locally, or publish
 it as-is with GitHub Pages (a `.nojekyll` is included).
 
+The reports describe the merged Parquet files, in which each profile's
+observations are sorted by increasing pressure and observations without a
+pressure value are dropped.
+
 Regions in this build: arctic baltic mediterranean.
 
-Generated on 2026-11-05.
+Generated on 2026-11-09.
 
 ## License
 

@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-d6870428.js";
+            window.path_to_searchindex_js = "searchindex-27dd8173.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-03be949b.js"></script>
@@ -201,7 +201,7 @@
 </table>
 </div>
 <h2 id="conversion"><a class="header" href="#conversion">Conversion</a></h2>
-<p>Counts after converting the source NetCDF files to Parquet, before any profile is dropped. These are the “original” numbers every later stage is compared against.</p>
+<p>Counts after converting the source NetCDF files to Parquet and merging them into one file. The merge sorts each profile’s observations by increasing pressure and drops observations without a pressure value (a profile with no pressure at all is dropped with them); no other profile is dropped yet. These are the “original” numbers every later stage is compared against.</p>
 <ul>
 <li>File: <code>report/convert/nrt_ar_gl.parquet.tsv</code></li>
 </ul>
@@ -218,16 +218,59 @@
 </table>
 </div>
 <p><strong>Data mode</strong></p>
-<p>Observations per data mode for each parameter: real-time (R), adjusted in real time (A), or delayed mode (D). Percentages are shares of all observations. Observations whose data mode is unset (a fill value in the source file) are not counted, so a row can sum to less than 100%.</p>
+<p>Observations per data mode for each parameter: real-time (R), adjusted in real time (A), or delayed mode (D), as recorded in the source files. Percentages are shares of all observations. Unknown counts observations with no data mode: a fill value in the source file, a file without data-mode information, or a parameter the file does not have.</p>
 <div class="table-wrapper">
 <table>
 <thead>
-<tr><th>Parameter</th><th>Real-time (R)</th><th>% R</th><th>Adjusted (A)</th><th>% A</th><th>Delayed mode (D)</th><th>% D</th></tr>
+<tr><th>Parameter</th><th>Real-time (R)</th><th>% R</th><th>Adjusted (A)</th><th>% A</th><th>Delayed mode (D)</th><th>% D</th><th>Unknown</th><th>% Unknown</th></tr>
 </thead>
 <tbody>
-<tr><td>Temperature</td><td>239,477,093</td><td>85.7%</td><td>0</td><td>0.0%</td><td>39,988,103</td><td>14.3%</td></tr>
-<tr><td>Salinity</td><td>239,477,093</td><td>85.7%</td><td>0</td><td>0.0%</td><td>39,988,103</td><td>14.3%</td></tr>
-<tr><td>Pressure</td><td>240,916,360</td><td>86.2%</td><td>0</td><td>0.0%</td><td>38,548,836</td><td>13.8%</td></tr>
+<tr><td>Temperature</td><td>239,474,284</td><td>85.7%</td><td>0</td><td>0.0%</td><td>39,988,103</td><td>14.3%</td><td>2,809</td><td>0.0%</td></tr>
+<tr><td>Salinity</td><td>239,473,480</td><td>85.7%</td><td>0</td><td>0.0%</td><td>39,988,103</td><td>14.3%</td><td>3,613</td><td>0.0%</td></tr>
+<tr><td>Pressure</td><td>240,916,360</td><td>86.2%</td><td>0</td><td>0.0%</td><td>38,548,836</td><td>13.8%</td><td>0</td><td>0.0%</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="pressure-order"><a class="header" href="#pressure-order">Pressure order</a></h2>
+<p>Checks, before the merge, that pressure increases along each profile in the order the source file stores it. A profile is counted when its pressure steps down between two observations; missing pressures are skipped and a repeated pressure is fine. “Reversed” profiles are stored from the bottom up, which the merge’s sort by pressure puts right; “non-monotonic” ones go both up and down, which can mean loops, spikes or misplaced levels, and the sort hides them. Shares are of the profiles, platforms and files checked; profiles without any pressure are not checked (the merge drops them). Nothing is removed here.</p>
+<ul>
+<li>File: <code>report/convert/checkpres/nrt_ar_gl.summary.tsv</code></li>
+<li>File: <code>report/convert/checkpres/nrt_ar_gl.platforms.tsv</code></li>
+</ul>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Metric</th><th>Count</th><th>Share</th></tr>
+</thead>
+<tbody>
+<tr><td>Profiles checked</td><td>753,991</td><td></td></tr>
+<tr><td>Profiles without pressure (not checked)</td><td>0</td><td></td></tr>
+<tr><td>Profiles with decreasing pressure</td><td>15,836</td><td>2.1%</td></tr>
+<tr><td>of which reversed</td><td>420</td><td>0.1%</td></tr>
+<tr><td>of which non-monotonic</td><td>15,416</td><td>2.0%</td></tr>
+<tr><td>Platforms with such profiles</td><td>30</td><td>5.4%</td></tr>
+<tr><td>Files with such profiles</td><td>30</td><td>5.4%</td></tr>
+</tbody>
+</table>
+</div>
+<p><strong>Platforms</strong></p>
+<p>The platforms with the most such profiles, at most 10; the full list, and every profile with its time and position, are in the checkpres reports.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Platform</th><th>Profiles</th><th>% of its profiles</th><th>Reversed</th><th>Non-monotonic</th><th>First</th><th>Last</th></tr>
+</thead>
+<tbody>
+<tr><td>FNCM</td><td>7,930</td><td>45.7%</td><td>128</td><td>7,802</td><td>2000-01-01</td><td>2023-04-17</td></tr>
+<tr><td>FNIN</td><td>2,679</td><td>56.9%</td><td>21</td><td>2,658</td><td>2012-01-26</td><td>2022-05-16</td></tr>
+<tr><td>FMCY</td><td>2,200</td><td>20.1%</td><td>75</td><td>2,125</td><td>2015-01-12</td><td>2022-02-10</td></tr>
+<tr><td>FNFP</td><td>1,086</td><td>6.2%</td><td>196</td><td>890</td><td>1997-09-03</td><td>2026-02-12</td></tr>
+<tr><td>FABB</td><td>984</td><td>11.8%</td><td>0</td><td>984</td><td>2014-05-24</td><td>2019-05-25</td></tr>
+<tr><td>FNOY</td><td>226</td><td>5.6%</td><td>0</td><td>226</td><td>1972-02-21</td><td>1977-12-15</td></tr>
+<tr><td>SNGH</td><td>203</td><td>6.7%</td><td>0</td><td>203</td><td>2010-02-10</td><td>2015-10-19</td></tr>
+<tr><td>CGBV</td><td>167</td><td>2.1%</td><td>0</td><td>167</td><td>1971-05-10</td><td>1990-10-10</td></tr>
+<tr><td>CGDG</td><td>70</td><td>0.4%</td><td>0</td><td>70</td><td>1974-03-31</td><td>1998-06-06</td></tr>
+<tr><td>MJPX9</td><td>41</td><td>1.2%</td><td>0</td><td>41</td><td>1997-08-12</td><td>2007-05-12</td></tr>
 </tbody>
 </table>
 </div>
