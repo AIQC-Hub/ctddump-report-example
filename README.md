@@ -18,6 +18,10 @@ Regions in this build: arctic baltic mediterranean.
 
 Generated on 2026-11-09.
 
+## Citation
+
+See [`CITATION.cff`](./CITATION.cff), or cite <https://doi.org/10.5281/zenodo.24092527>.
+
 ## License
 
 See [`LICENSE`](./LICENSE).
